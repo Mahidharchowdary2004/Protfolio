@@ -92,7 +92,10 @@ const Contact = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Origin": window.location.origin
         },
+        mode: "cors",
+        credentials: "include",
         body: JSON.stringify(formData),
       });
       
