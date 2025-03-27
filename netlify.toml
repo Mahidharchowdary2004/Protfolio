@@ -10,3 +10,7 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_VERSION = "9"
+
+# Disable all plugins
+[plugins]
+  enabled = false
