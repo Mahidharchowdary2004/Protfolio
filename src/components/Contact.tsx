@@ -95,8 +95,7 @@ const Contact = () => {
       const response = await fetch(baseUrl + (isDevelopment ? '/api/contact' : '?url=http://localhost:3003/api/contact'), {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "X-Requested-With": "XMLHttpRequest"
+          "Content-Type": "application/json"
         },
         mode: "cors",
         body: isDevelopment 

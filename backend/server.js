@@ -8,26 +8,26 @@ const startPort = process.env.PORT || 3001;
 
 // CORS configuration
 app.use(cors({
-  origin: function(origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
-    if(!origin) return callback(null, true);
-    
+  origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:8080',
       'http://localhost:8081',
       'http://localhost:5173',
-      'https://mahidharpotfolio.netlify.app',
-      'https://api.allorigins.win'
+      'https://mahidharpotfolio.netlify.app'
     ];
-    
-    if(allowedOrigins.indexOf(origin) === -1){
-      return callback(null, false);
+
+    if (!origin) return callback(null, true); // Allow non-browser requests (e.g., curl)
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
-    return callback(null, true);
+
+    // Disallowed origins error response
+    return callback(new Error('CORS policy violation'), false);
   },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: false
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin'],
+  credentials: true,
+  preflightContinue: false
 }));
 
 app.use(express.json());
@@ -51,25 +51,16 @@ db.query(createTableQuery)
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
-    // Handle both direct and proxied requests
-    let formData;
-    if (req.body.data) {
-      // Request from proxy
-      formData = JSON.parse(req.body.data);
-    } else {
-      // Direct request
-      formData = req.body;
-    }
-
+    const formData = req.body.data ? JSON.parse(req.body.data) : req.body;
     const { name, email, subject, message } = formData;
-    
+
     const query = `
       INSERT INTO contact_messages (name, email, subject, message)
       VALUES (?, ?, ?, ?)
     `;
-    
+
     await db.query(query, [name, email, subject, message]);
-    
+
     res.status(201).json({ message: 'Message sent successfully' });
   } catch (error) {
     console.error('Error saving message:', error);
@@ -86,15 +77,14 @@ app.get('/api/test', (req, res) => {
 const findAvailablePort = (startPort) => {
   return new Promise((resolve, reject) => {
     const server = require('net').createServer();
-    
+
     server.listen(startPort, () => {
       const port = server.address().port;
       server.close(() => resolve(port));
     });
-    
+
     server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
-        // Port is in use, try the next one
         resolve(findAvailablePort(parseInt(startPort) + 1));
       } else {
         reject(err);
@@ -116,4 +106,4 @@ const startServer = async () => {
   }
 };
 
-startServer(); 
+startServer();
