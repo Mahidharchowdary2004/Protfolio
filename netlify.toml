@@ -1,6 +1,6 @@
 [build]
   command = "npm run build"
-  publish = ".next"
+  publish = "dist"
 
 [[redirects]]
   from = "/*"
@@ -10,3 +10,7 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_VERSION = "9"
+
+# Disable Next.js plugin
+[plugins]
+  enabled = false
