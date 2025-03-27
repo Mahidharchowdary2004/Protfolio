@@ -51,7 +51,17 @@ db.query(createTableQuery)
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
-    const { name, email, subject, message } = req.body;
+    // Handle both direct and proxied requests
+    let formData;
+    if (req.body.data) {
+      // Request from proxy
+      formData = JSON.parse(req.body.data);
+    } else {
+      // Direct request
+      formData = req.body;
+    }
+
+    const { name, email, subject, message } = formData;
     
     const query = `
       INSERT INTO contact_messages (name, email, subject, message)

@@ -88,25 +88,31 @@ const Contact = () => {
     try {
       // For development vs production environments
       const isDevelopment = process.env.NODE_ENV === 'development';
-      const apiUrl = isDevelopment 
+      const baseUrl = isDevelopment 
         ? 'http://localhost:3003' 
-        : 'https://api.allorigins.win/raw?url=http://localhost:3003';
+        : 'https://api.allorigins.win/post';
 
-      const response = await fetch(`${apiUrl}/api/contact`, {
+      const response = await fetch(baseUrl + (isDevelopment ? '/api/contact' : '?url=http://localhost:3003/api/contact'), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Requested-With": "XMLHttpRequest"
         },
         mode: "cors",
-        body: JSON.stringify(formData),
+        body: isDevelopment 
+          ? JSON.stringify(formData)
+          : JSON.stringify({
+              data: JSON.stringify(formData)
+            }),
       });
       
       if (!response.ok) {
         throw new Error('Failed to send message. Please try again later.');
       }
       
-      const data = await response.json();
+      const data = isDevelopment 
+        ? await response.json()
+        : await response.json().then(res => JSON.parse(res.contents));
       
       toast({
         title: "Message sent successfully",
