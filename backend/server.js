@@ -68,7 +68,7 @@ const findAvailablePort = (startPort) => {
     server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
         // Port is in use, try the next one
-        resolve(findAvailablePort(startPort + 1));
+        resolve(findAvailablePort(parseInt(startPort) + 1));
       } else {
         reject(err);
       }
