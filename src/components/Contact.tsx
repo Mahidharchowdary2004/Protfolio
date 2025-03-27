@@ -91,11 +91,9 @@ const Contact = () => {
       const response = await fetch(`${apiUrl}/api/contact`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Origin": window.location.origin
+          "Content-Type": "application/json"
         },
         mode: "cors",
-        credentials: "include",
         body: JSON.stringify(formData),
       });
       
