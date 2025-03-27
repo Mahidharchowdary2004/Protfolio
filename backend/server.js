@@ -8,10 +8,26 @@ const startPort = process.env.PORT || 3001;
 
 // CORS configuration
 app.use(cors({
-  origin: ['https://mahidharpotfolio.netlify.app', 'http://localhost:5173', 'http://localhost:8080', 'http://localhost:8081'],
+  origin: function(origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if(!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:8080',
+      'http://localhost:8081',
+      'http://localhost:5173',
+      'https://mahidharpotfolio.netlify.app',
+      'https://api.allorigins.win'
+    ];
+    
+    if(allowedOrigins.indexOf(origin) === -1){
+      return callback(null, false);
+    }
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Origin'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: false
 }));
 
 app.use(express.json());

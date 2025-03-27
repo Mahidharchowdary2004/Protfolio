@@ -86,12 +86,17 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      // Use environment variable for API URL
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3003';
+      // For development vs production environments
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      const apiUrl = isDevelopment 
+        ? 'http://localhost:3003' 
+        : 'https://api.allorigins.win/raw?url=http://localhost:3003';
+
       const response = await fetch(`${apiUrl}/api/contact`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
         },
         mode: "cors",
         body: JSON.stringify(formData),
