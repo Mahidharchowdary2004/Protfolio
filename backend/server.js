@@ -8,7 +8,7 @@ const startPort = process.env.PORT || 3001;
 
 // CORS configuration
 app.use(cors({
-  origin: '*', // Allow all origins in development
+  origin: 'https://mahidharpotfolio.netlify.app',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin'],
   credentials: true
