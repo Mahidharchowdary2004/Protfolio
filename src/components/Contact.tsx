@@ -86,8 +86,9 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      // Simplified API call - using a single endpoint with fallback
-      const response = await fetch('http://localhost:3003/api/contact', {
+      // Use environment variable for API URL
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3003';
+      const response = await fetch(`${apiUrl}/api/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

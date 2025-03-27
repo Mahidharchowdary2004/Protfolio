@@ -8,9 +8,16 @@ const startPort = process.env.PORT || 3001;
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:8081', 'http://localhost:5173'], // Add all possible frontend ports
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type']
+  origin: [
+    'http://localhost:8080', 
+    'http://localhost:8081', 
+    'http://localhost:5173',
+    'https://mahidharpotfolio.netlify.app',
+    'http://localhost:3003'
+  ],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
