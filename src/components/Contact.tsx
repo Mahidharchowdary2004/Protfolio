@@ -87,7 +87,7 @@ const Contact = () => {
     
     try {
       // Simplified API call - using a single endpoint with fallback
-      const response = await fetch('/api/contact', {
+      const response = await fetch('http://localhost:3003/api/contact', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
