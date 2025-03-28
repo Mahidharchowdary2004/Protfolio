@@ -11,6 +11,7 @@ app.use(cors({
   origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:8080',
+      'http://localhost:*',
       'http://localhost:8081',
       'http://localhost:5173',
       'https://mahidharpotfolio.netlify.app',
