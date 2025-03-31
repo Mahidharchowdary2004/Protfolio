@@ -16,7 +16,8 @@ app.use(cors({
       'http://localhost:8081',
       'http://localhost:5173',
       'https://mahidharpotfolio.netlify.app',
-      'https://portfolio-nv339awbd-mahidharchowdary2004s-projects.vercel.app'
+      'https://portfolio-nv339awbd-mahidharchowdary2004s-projects.vercel.app',
+      'https://portfolio-sryr.onrender.com'
     ];
 
     if (!origin) return callback(null, true);
