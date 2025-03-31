@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { pool, testConnection } = require('./config/db');
+const { connectDB } = require('./config/db');
+const ContactMessage = require('./models/ContactMessage');
 
 const app = express();
 const startPort = process.env.PORT || 3003;
@@ -32,58 +33,23 @@ app.use(cors({
 
 app.use(express.json());
 
-// Create contact messages table if it doesn't exist
-const createTableQuery = `
-  CREATE TABLE IF NOT EXISTS contact_messages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    subject VARCHAR(255) NOT NULL,
-    message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`;
-
 // Initialize database with retry logic
 const initializeDatabase = async (retries = 3) => {
   for (let i = 0; i < retries; i++) {
     try {
-      console.log(`Attempting database connection (attempt ${i + 1}/${retries})...`);
-      console.log('Database configuration:', {
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        database: process.env.DB_NAME,
-        port: process.env.DB_PORT
-      });
-
-      const isConnected = await testConnection();
-      if (!isConnected) {
-        console.log(`Database connection attempt ${i + 1} failed. Retrying in 5 seconds...`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        continue;
-      }
-
-      console.log('Creating contact_messages table if it does not exist...');
-      await pool.query(createTableQuery);
-      console.log('Database table ready');
+      console.log(`Attempting MongoDB connection (attempt ${i + 1}/${retries})...`);
+      await connectDB();
+      console.log('MongoDB connection successful');
       return true;
     } catch (error) {
-      console.error(`Error initializing database (attempt ${i + 1}):`, error.message);
-      if (error.code === 'ER_ACCESS_DENIED_ERROR') {
-        console.error('Access denied. Please check your database credentials.');
-      } else if (error.code === 'ER_BAD_DB_ERROR') {
-        console.error('Database does not exist. Please create the database first.');
-      } else if (error.code === 'ECONNREFUSED') {
-        console.error('Could not connect to database server. Please check if the server is running.');
-      }
-      
+      console.error(`Error connecting to MongoDB (attempt ${i + 1}):`, error.message);
       if (i < retries - 1) {
         console.log('Waiting 5 seconds before retry...');
         await new Promise(resolve => setTimeout(resolve, 5000));
       }
     }
   }
-  console.error('Failed to initialize database after multiple attempts');
+  console.error('Failed to connect to MongoDB after multiple attempts');
   return false;
 };
 
@@ -128,17 +94,21 @@ app.post('/api/contact', async (req, res) => {
       });
     }
 
-    console.log('Attempting to insert into MySQL...');
-    const [result] = await pool.query(
-      'INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)',
-      [name, email, subject, message]
-    );
+    console.log('Attempting to save to MongoDB...');
+    const newMessage = new ContactMessage({
+      name,
+      email,
+      subject,
+      message
+    });
     
-    console.log('Successfully inserted message:', result);
+    const savedMessage = await newMessage.save();
+    console.log('Successfully saved message:', savedMessage);
+    
     res.status(201).json({
       success: true,
       message: 'Message sent successfully',
-      data: { id: result.insertId, name, email, subject, message }
+      data: savedMessage
     });
   } catch (error) {
     console.error('Error saving message:', error);
