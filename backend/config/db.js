@@ -8,10 +8,7 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0,
-  connectTimeout: 10000,
-  acquireTimeout: 10000,
-  timeout: 10000,
+  queueLimit: 0
 });
 
 // Test database connection
@@ -23,6 +20,12 @@ const testConnection = async () => {
     return true;
   } catch (error) {
     console.error('Error connecting to database:', error.message);
+    if (error.code === 'ECONNREFUSED') {
+      console.error('Could not connect to database. Please check if:');
+      console.error('1. Database server is running');
+      console.error('2. Database credentials are correct');
+      console.error('3. Database host is accessible');
+    }
     return false;
   }
 };

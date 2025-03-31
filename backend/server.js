@@ -48,19 +48,37 @@ const createTableQuery = `
 const initializeDatabase = async (retries = 3) => {
   for (let i = 0; i < retries; i++) {
     try {
+      console.log(`Attempting database connection (attempt ${i + 1}/${retries})...`);
+      console.log('Database configuration:', {
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT
+      });
+
       const isConnected = await testConnection();
       if (!isConnected) {
-        console.log(`Database connection attempt ${i + 1} failed. Retrying...`);
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retry
+        console.log(`Database connection attempt ${i + 1} failed. Retrying in 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
         continue;
       }
 
+      console.log('Creating contact_messages table if it does not exist...');
       await pool.query(createTableQuery);
       console.log('Database table ready');
       return true;
     } catch (error) {
       console.error(`Error initializing database (attempt ${i + 1}):`, error.message);
+      if (error.code === 'ER_ACCESS_DENIED_ERROR') {
+        console.error('Access denied. Please check your database credentials.');
+      } else if (error.code === 'ER_BAD_DB_ERROR') {
+        console.error('Database does not exist. Please create the database first.');
+      } else if (error.code === 'ECONNREFUSED') {
+        console.error('Could not connect to database server. Please check if the server is running.');
+      }
+      
       if (i < retries - 1) {
+        console.log('Waiting 5 seconds before retry...');
         await new Promise(resolve => setTimeout(resolve, 5000));
       }
     }
