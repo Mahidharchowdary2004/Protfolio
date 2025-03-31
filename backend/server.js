@@ -53,20 +53,68 @@ db.query(createTableQuery)
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
-    const formData = req.body.data ? JSON.parse(req.body.data) : req.body;
-    const { name, email, subject, message } = formData;
+    console.log('Received contact form submission:', req.body);
+    console.log('Content-Type:', req.get('content-type'));
+    console.log('Headers:', req.headers);
 
-    const query = `
-      INSERT INTO contact_messages (name, email, subject, message)
-      VALUES (?, ?, ?, ?)
-    `;
+    // Ensure we're getting JSON data
+    if (!req.is('application/json')) {
+      console.log('Invalid content type:', req.get('content-type'));
+      return res.status(400).json({
+        success: false,
+        error: 'Content-Type must be application/json'
+      });
+    }
 
-    await db.query(query, [name, email, subject, message]);
+    const { name, email, subject, message } = req.body;
+    console.log('Parsed form data:', { name, email, subject, message });
 
-    res.status(201).json({ message: 'Message sent successfully' });
+    // Validate required fields
+    if (!name || !email || !subject || !message) {
+      console.log('Missing required fields:', { name, email, subject, message });
+      return res.status(400).json({
+        success: false,
+        error: 'All fields are required',
+        missingFields: {
+          name: !name,
+          email: !email,
+          subject: !subject,
+          message: !message
+        }
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log('Invalid email format:', email);
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
+      });
+    }
+
+    console.log('Attempting to insert into MySQL...');
+    const [result] = await db.query(
+      'INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)',
+      [name, email, subject, message]
+    );
+    
+    console.log('Successfully inserted message:', result);
+    res.status(201).json({
+      success: true,
+      message: 'Message sent successfully',
+      data: { id: result.insertId, name, email, subject, message }
+    });
   } catch (error) {
     console.error('Error saving message:', error);
-    res.status(500).json({ error: 'Failed to save message' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save message',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
