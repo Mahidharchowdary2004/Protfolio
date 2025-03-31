@@ -1,10 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const db = require('./config/db');
+const { pool, testConnection } = require('./config/db');
 
 const app = express();
-const startPort = process.env.PORT || 3001;
+const startPort = process.env.PORT || 3003;
 
 // CORS configuration
 app.use(cors({
@@ -18,12 +18,10 @@ app.use(cors({
       'https://portfolio-nv339awbd-mahidharchowdary2004s-projects.vercel.app'
     ];
 
-    if (!origin) return callback(null, true); // Allow non-browser requests (e.g., curl)
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-
-    // Disallowed origins error response
     return callback(new Error('CORS policy violation'), false);
   },
   methods: ['GET', 'POST', 'OPTIONS'],
@@ -46,9 +44,30 @@ const createTableQuery = `
   )
 `;
 
-db.query(createTableQuery)
-  .then(() => console.log('Database table ready'))
-  .catch(err => console.error('Error creating table:', err));
+// Initialize database with retry logic
+const initializeDatabase = async (retries = 3) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const isConnected = await testConnection();
+      if (!isConnected) {
+        console.log(`Database connection attempt ${i + 1} failed. Retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retry
+        continue;
+      }
+
+      await pool.query(createTableQuery);
+      console.log('Database table ready');
+      return true;
+    } catch (error) {
+      console.error(`Error initializing database (attempt ${i + 1}):`, error.message);
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+  }
+  console.error('Failed to initialize database after multiple attempts');
+  return false;
+};
 
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
@@ -57,7 +76,6 @@ app.post('/api/contact', async (req, res) => {
     console.log('Content-Type:', req.get('content-type'));
     console.log('Headers:', req.headers);
 
-    // Ensure we're getting JSON data
     if (!req.is('application/json')) {
       console.log('Invalid content type:', req.get('content-type'));
       return res.status(400).json({
@@ -69,7 +87,6 @@ app.post('/api/contact', async (req, res) => {
     const { name, email, subject, message } = req.body;
     console.log('Parsed form data:', { name, email, subject, message });
 
-    // Validate required fields
     if (!name || !email || !subject || !message) {
       console.log('Missing required fields:', { name, email, subject, message });
       return res.status(400).json({
@@ -84,7 +101,6 @@ app.post('/api/contact', async (req, res) => {
       });
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       console.log('Invalid email format:', email);
@@ -95,7 +111,7 @@ app.post('/api/contact', async (req, res) => {
     }
 
     console.log('Attempting to insert into MySQL...');
-    const [result] = await db.query(
+    const [result] = await pool.query(
       'INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)',
       [name, email, subject, message]
     );
@@ -143,10 +159,17 @@ const findAvailablePort = (startPort) => {
   });
 };
 
-// Start server with automatic port finding
+// Start server with database initialization
 const startServer = async () => {
   try {
     const port = await findAvailablePort(startPort);
+    
+    // Initialize database before starting server
+    const dbInitialized = await initializeDatabase();
+    if (!dbInitialized) {
+      console.error('Failed to initialize database. Server will start but contact form may not work.');
+    }
+
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
       console.log(`Frontend can connect to: http://localhost:${port}`);
