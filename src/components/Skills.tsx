@@ -17,8 +17,8 @@ const skillCategories: SkillCategory[] = [
   {
     title: "Programming",
     skills: [
-      { name: "Java", proficiency: 90 },
-      { name: "Python", proficiency: 85 },
+      { name: "Java", proficiency: 75 },
+      { name: "Python", proficiency: 80 },
       { name: "C", proficiency: 75 },
       
     ],
@@ -28,7 +28,7 @@ const skillCategories: SkillCategory[] = [
     skills: [
       { name: "Django", proficiency: 85 },
       { name: "React", proficiency: 80 },
-      { name: "MERN Stack", proficiency: 75 },
+      
       { name: "HTML/CSS", proficiency: 90 },
       { name: "Spring Boot", proficiency: 70 },
     ],
@@ -44,7 +44,7 @@ const skillCategories: SkillCategory[] = [
   {
     title: "Tools & Platforms",
     skills: [
-      { name: "MySQL", proficiency: 90 },
+      { name: "MYSQL", proficiency: 80 },
       { name: "AWS", proficiency: 75 },
       { name: "Jupyter Lab", proficiency: 85 },
       { name: "GitHub", proficiency: 85 },

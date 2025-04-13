@@ -77,12 +77,18 @@ const About = () => {
                
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                  Data Visualization and Analysis
+                  AWS
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                  Web Development
+                  TensorFlow
                 </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  PyTorch
+                </li>
+                
+                
               </ul>
             </div>
 
